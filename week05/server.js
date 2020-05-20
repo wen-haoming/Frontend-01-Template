@@ -8,7 +8,7 @@ const server = http.createServer((req,res)=>{
     res.writeHead(200,{
         'Content-Type':'text/plain'
     })
-    res.end('ok')  
+    res.end('okIamabody')
 })
 // server.on('connection',(socket)=>{
 //    socket.on('data',(data)=>{
