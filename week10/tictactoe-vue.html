@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicTacToe</title>
+</head>
+<style>
+    .line {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+    .cell {
+        width: 100px;
+        height: 100px;
+        margin: 3px;
+        background-color: green;
+        line-height: 100px;
+        font-size: 50px;
+        text-align: center;
+        cursor: pointer;
+        font-weight: bold;
+        color: #ffffff;
+    }
+</style>
+<body>
+    <div id="app">
+        <div 
+            v-for="(item, index) in pattern"
+            :key="index"
+            class="line">
+            <div 
+                v-for="(cell, i) in item"
+                :key="i"
+                class="cell"
+                @click="handleClickCell(index, i)">
+                {{ showCurrentDesc(cell) }}
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="application/javascript">
+new Vue({
+    el: '#app',
+    data() {
+        return {
+            currentType: 1,
+            pattern: [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0]
+            ]
+        }
+    },
+    watch: {
+        pattern: function(val) {
+            val.forEach(element => {
+                if (this.sum(element) === 3 || this.sum(element) === 30) {
+                    alert('Win!')
+                    this.resetPattern();
+                    return
+                }
+            });
+
+            for(let i = 0; i < 3; i++) {
+                const lineCount = (val[0][i] + val[1][i] + val[2][i]);
+                if( lineCount === 3 || lineCount === 30) {
+                    alert('Win!')
+                    this.resetPattern();
+                    return
+                }
+            }
+
+            const translateCount = val[0][0] + val[1][1] + val[2][2];
+            const backTranslateCount = val[0][2] + val[1][1] + val[2][0];
+            if (translateCount === 3 || translateCount === 30 || backTranslateCount === 3 || backTranslateCount === 30) {
+                alert('Win!')
+                this.resetPattern();
+                return
+            }
+        }
+    },
+    methods: {
+        resetPattern() {
+            this.pattern = [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0]
+            ]
+        },
+        sum(arr) {
+            return arr.reduce(function(prev, curr, idx, arr){
+                return prev + curr;
+            });
+        },
+        showCurrentDesc(number) {
+            switch(number) {
+                case 0:
+                    return ''
+                    break;
+                case 1:
+                    return '×'
+                    break;
+                case 10:
+                    return '○'
+                    break;
+            }
+        },
+        handleClickCell(outIndex, innerIndex) {
+            if (this.pattern[outIndex][innerIndex] === 0) {
+                this.pattern[outIndex][innerIndex] = this.currentType;
+                const pattern = JSON.parse(JSON.stringify(this.pattern))
+                this.pattern = pattern;
+                this.currentType === 1 ? this.currentType = 10 : this.currentType = 1
+            }
+        }
+    }
+})
+</script>
+</html>
