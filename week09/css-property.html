@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    const cssData = window.getComputedStyle(document.body);
+    const cssList = [];
+    const fontList = []
+    const animationList = []
+    const textList = []
+    const borderPaddingMarginList = []
+    const backgroundList = []
+    const transitionAndTransformList = []
+    for (let key in cssData) {
+      if (Number(key)) {
+        const value = String(cssData[key]);
+        if (value.match(/^-webkit/)) {
+          continue;
+        }
+
+        if (value.match(/^font/)) {
+            fontList.push(value)
+        } else if (value.match(/^animation/)) {
+            animationList.push(value)
+        }  else if (value.match(/^text/)) {
+            textList.push(value)
+        }  else if (value.match(/^border|^padding|^margin/)) {
+            borderPaddingMarginList.push(value)
+        }  else if (value.match(/^background/)) {
+            backgroundList.push(value)
+        } else if (value.match(/^transition|^transform/)) {
+            transitionAndTransformList.push(value)
+        }else {
+            cssList.push(value);
+        }
+        
+      }
+    }
+    console.log(cssList);
+    console.log(fontList);
+    console.log(animationList);
+    console.log(textList);
+    console.log(borderPaddingMarginList);
+    console.log(backgroundList);
+    console.log(transitionAndTransformList)
+  </script>
+</html>
