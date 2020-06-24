@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .cell {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: gray;
+    }
+    #red.active {
+      background-color: red;
+    }
+    #yellow.active {
+      background-color: yellow;
+    }
+    #green.active {
+      background-color: green;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="red" class="cell"></div>
+    <div id="yellow" class="cell"></div>
+    <div id="green" class="cell"></div>
+  </div>
+  <script>
+    const map = {
+      red: 5000,
+      yellow: 2000,
+      green: 10000
+    }
+    const cells = document.getElementsByClassName('cell')
+
+    function changeColor(color) {
+      for (cell of cells) {
+        cell.classList.remove('active')
+      }
+      const active = document.getElementById(color)
+      active.classList.add('active')
+    }
+    function sleep(time) {
+      return new Promise((resovle, reject) => {
+        setTimeout(() => {
+          resovle()
+        }, time)
+      })
+    }
+
+    async function main() {
+      while (true) {
+        for (color in map) {
+          const time = map[color]
+          changeColor(color)
+          await sleep(time)
+        }
+      }
+    }
+
+    main()
+  </script>
+</body>
+</html>

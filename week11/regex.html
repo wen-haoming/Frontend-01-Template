@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<style>
+  .keywords {
+    color: rgb(8, 54, 92);
+  }
+  .identifier {
+    color: rgb(99, 158, 235);
+  }
+  .punctuator {
+    color: lightblue;
+  }
+</style>
+<body>
+  <pre id="container"></pre>
+  <script>
+    let source = `
+    function sleep(time) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, time)
+      })
+    }`;
+    let regexp = /(function|new|return)|([a-zA-Z][a-zA-Z0-9]*)|([ \t\r\n]+)|([\(\)\{\}\,\;])/g;
+
+    let dictionary = ['keywords', 'identifier', 'whitespace', 'punctuator']
+    let token = null;
+
+    let container = document.getElementById('container')
+
+    async function run() {
+      do {
+        token = regexp.exec(source)
+        if (!token) break
+        for (let i = 1; i < 5; i++) {
+          if (token[i]) {
+            let text = document.createElement('span')
+            text.innerText = token[i]
+            text.classList.add(dictionary[i - 1])
+            container.appendChild(text)
+            await sleep(300)
+          }
+        }
+      } while(token);
+    }
+    
+
+    function sleep(time) {
+      return new Promise((resovle, reject) => {
+        setTimeout(() => {
+          resovle()
+        }, time)
+      })
+    }
+
+    run()
+  </script>
+</body>
+</html>

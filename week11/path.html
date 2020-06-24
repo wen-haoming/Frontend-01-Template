@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <style>
+    .cell {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      vertical-align: middle;
+      background-color: gray;
+      border-right: 1px solid white;
+      border-bottom: 1px solid white;
+    }
+    .cell.active {
+      background-color: black;
+    }
+    #container {
+      width: 701px;
+      line-height: 0px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <button onclick="localStorage.map = JSON.stringify(map)">save</button>
+  <script>
+    class BinaryHeap {
+      constructor(data, compare) {
+        this.data = data
+        this.compare = compare
+      }
+
+      insert(v) {
+        this.insertAt(this.data.length, v)
+      }
+
+      insertAt(i, v) {
+        this.data[i] = v
+        while(i > 0 && this.compare(v, this.data[Math.floor((i - 1) / 2)]) < 0) {
+          this.data[i] = this.data[Math.floor((i - 1) / 2)]
+          this.data[Math.floor((i - 1) / 2)] = v
+          i = Math.floor((i - 1) / 2)
+        }
+      }
+
+      take() {
+        if (!this.data.length) return
+        let min = this.data[0]
+        let i = 0
+        while(i < this.data.length) {
+          if (i * 2 + 1 >= this.data.length) {
+            break
+          }
+          if (i * 2 + 2 >= this.data.length) {
+            i = i * 2 + 1
+            break
+          }
+          if (this.compare(this.data[i * 2 + 1], this.data[i * 2 + 2]) > 0) {
+            this.data[i] = this.data[i * 2 + 2]
+            i = i * 2 + 2
+          } else {
+            this.data[i] = this.data[i * 2 + 1]
+            i = i * 2 + 1
+          }
+        }
+
+        if (i < this.data.length - 1) {
+          this.insertAt(i, this.data.pop())
+        } else {
+          this.data.pop()
+        }
+
+        return min
+      }
+
+      get length() {
+        return this.data.length
+      }
+
+    }
+    class Sorted {
+      constructor(data, compare) {
+        this.data = data
+        this.compare = compare
+      }
+      get length() {
+        return this.data.length
+      }
+      take() {
+        if (!this.length) return
+        let min = this.data[0]
+        let minIndex = 0
+
+        for (let i = 1; i < this.data.length; i++) {
+          if (this.compare(min, this.data[i]) > 0) {
+            min = this.data[i]
+            minIndex = i
+          }
+        }
+        if (minIndex !== this.data.length - 1) {
+          let last = this.data.pop()
+          this.data[minIndex] = last
+        } else {
+          this.data.pop()
+        }
+        return min
+      }
+      push(v) {
+        return this.data.push(v)
+      }
+    }
+    let map = localStorage.map ? JSON.parse(localStorage.map) : Array(10000).fill(0)
+    let container = document.getElementById('container')
+    let mouseDown = false
+    let clear = false
+
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x ++) {
+        let cell = document.createElement('div')
+        if (map[y * 100 + x] === 1) {
+          cell.classList.add('active')
+        }
+        cell.classList.add('cell')
+        cell.addEventListener('mouseover', () => {
+          if (mouseDown) {
+            if (clear) {
+              cell.classList.remove('active')
+              map[y * 100 + x] = 0
+            } else {
+              cell.classList.add('active')
+              map[y * 100 + x] = 1
+            }
+          }
+        })
+        container.appendChild(cell)
+      }
+    }
+    document.addEventListener('mousedown', (e) => {
+      mouseDown = true
+      clear = e.which === 3
+    })
+    document.addEventListener('mouseup', () => {
+      mouseDown = false
+    })
+    document.addEventListener('contextmenu', e => e.preventDefault())
+
+    function sleep(time) {
+      return new Promise((resolve, reject) => {
+        setTimeout(resolve, time)
+      })
+    }
+
+    async function findPath(map, start, end) {
+      let endIndex = end[1] * 100 + end[0]
+      let startIndex = start[1] * 100 + start[0]
+      if (map[endIndex]) 
+        return false
+      else {
+        container.children[startIndex].style.backgroundColor = 'green'
+        container.children[endIndex].style.backgroundColor = 'red'
+      }
+      function distance([x, y]) {
+        return (x - end[0]) ** 2 + (y - end[1]) ** 2
+      }
+      let heap = new BinaryHeap([start], (a, b) => distance(a) - distance(b))
+      map = map.slice()
+      async function insert([x, y], pre) {
+        if (x < 0 || y < 0 || x >= 100 || y >= 100) {
+          return
+        }
+        if (map[y * 100 + x] !== 0) {
+          return
+        }
+        map[y * 100 + x] = pre
+        container.children[y * 100 + x].style.backgroundColor = 'lightblue'
+        heap.insert([x, y])
+        await sleep(2)
+      }
+      while(heap.length) {
+        let [x, y] = heap.take()
+        if (x === end[0] && y === end[1]) {
+          let path = []
+          while(x !== start[0] || y !== start[1]) {
+            path.push([x, y])
+            container.children[y * 100 + x].style.backgroundColor = 'pink';
+            [x, y] = map[y * 100 + x];
+            await sleep(1)
+          }
+          return path
+        }
+        
+
+        // [x-1, y-1] [x, y - 1] [x + 1, y -1 1]
+        // [x - 1, y] [x, y] [x + 1, y]
+        // [x-1, y+1] [x, y + 1] [x + 1, y + 1]
+        if (!(map[(y - 1) * 100 + x] && map[y * 100 + x - 1])) {
+          await insert([x - 1, y - 1], [x, y])
+        }
+        if (!(map[(y + 1) * 100 + x] && map[y * 100 + x - 1])) {
+          await insert([x - 1, y + 1], [x, y])
+        }
+
+        if (!(map[(y + 1) * 100 + x] && map[y * 100 + x + 1])) {
+          await insert([x + 1, y + 1], [x, y])
+        }
+
+        if (!(map[(y - 1) * 100 + x] && map[y * 100 + x + 1])) {
+          await insert([x + 1, y - 1], [x, y])
+        }
+        await insert([x - 1, y], [x, y])
+        await insert([x + 1, y], [x, y])
+        await insert([x, y - 1], [x, y])
+        await insert([x, y + 1], [x, y])
+      }
+      return null
+    }
+
+    async function findPath2(map, start, end) {
+      let endIndex = end[1] * 100 + end[0]
+      let startIndex = start[1] * 100 + start[0]
+      if (map[endIndex]) 
+        return false
+      else {
+        container.children[startIndex].style.backgroundColor = 'green'
+        container.children[endIndex].style.backgroundColor = 'red'
+      }
+      function distance([x, y]) {
+        return (x - end[0]) ** 2 + (y - end[1]) ** 2
+      }
+      let sorted = new Sorted([start], (a, b) => distance(a) - distance(b))
+      map = map.slice()
+      async function insert([x, y], pre) {
+        if (x < 0 || y < 0 || x >= 100 || y >= 100) {
+          return
+        }
+        if (map[y * 100 + x] !== 0) {
+          return
+        }
+        map[y * 100 + x] = pre
+        container.children[y * 100 + x].style.backgroundColor = 'lightblue'
+        sorted.push([x, y])
+        await sleep(2)
+      }
+      while(sorted.length) {
+        let [x, y] = sorted.take()
+        if (x === end[0] && y === end[1]) {
+          let path = []
+          while(x !== start[0] || y !== start[1]) {
+            path.push([x, y])
+            container.children[y * 100 + x].style.backgroundColor = 'pink';
+            [x, y] = map[y * 100 + x];
+            await sleep(1)
+          }
+          return path
+        }
+
+        // [x-1, y-1] [x, y - 1] [x + 1, y -1 1]
+        // [x - 1, y] [x, y] [x + 1, y]
+        // [x-1, y+1] [x, y + 1] [x + 1, y + 1]
+        if (!(map[(y - 1) * 100 + x] && map[y * 100 + x - 1])) {
+          await insert([x - 1, y - 1], [x, y])
+        }
+        if (!(map[(y + 1) * 100 + x] && map[y * 100 + x - 1])) {
+          await insert([x - 1, y + 1], [x, y])
+        }
+
+        if (!(map[(y + 1) * 100 + x] && map[y * 100 + x + 1])) {
+          await insert([x + 1, y + 1], [x, y])
+        }
+
+        if (!(map[(y - 1) * 100 + x] && map[y * 100 + x + 1])) {
+          await insert([x + 1, y - 1], [x, y])
+        }
+        await insert([x - 1, y], [x, y])
+        await insert([x + 1, y], [x, y])
+        await insert([x, y - 1], [x, y])
+        await insert([x, y + 1], [x, y])
+      }
+      return null
+    }
+
+  </script>
+</body>
+</html>
